@@ -19,7 +19,7 @@ services:
     container_name: node
     command: npm run start
     volumes:
-      - .:/usr/app
+      - ..:/usr/app
     ports:
       - 8080:8080
     depends_on:
