@@ -1,0 +1,6 @@
+FROM mysql:latest
+
+ENV MYSQL_ROOT_PASSWORD=root
+ENV MYSQL_DATABASE=twitter
+ENV MYSQL_USER=ashway
+ENV MYSQL_PASSWORD=ashway
