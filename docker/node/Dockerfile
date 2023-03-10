@@ -1,3 +1,3 @@
-FROM node:12.16.1-alpine3.9
+FROM node:19-alpine3.16
 WORKDIR /usr/app
 RUN npm install --quiet

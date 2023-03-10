@@ -1,17 +1,22 @@
-'use strict';
+import Fastify from 'fastify'
 
-const express = require('express');
+/**
+ * @type {import('fastify').FastifyInstance} Instance of Fastify
+ */
+const fastify = Fastify({
+    logger: true
+})
 
-// Constants
-const PORT = 8080;
-const HOST = '0.0.0.0';
+fastify.get('/', async (request, reply) => {
+    return {}
+})
 
-// App
-const app = express();
-app.get('/', (req, res) => {
-    res.send('Hello World');
-});
-
-app.listen(PORT, HOST, () => {
-    console.log(`Running on http://${HOST}:${PORT}`);
-});
+const start = async () => {
+    try {
+        await fastify.listen({ port: 3000 })
+    } catch (err) {
+        fastify.log.error(err)
+        process.exit(1)
+    }
+}
+start()

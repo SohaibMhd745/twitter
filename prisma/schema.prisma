@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Media {
+  id                   Int       @id @default(autoincrement())
+  name                 String
+  content              String
+  type                 MediaType @relation(fields: [typeId], references: [id])
+  typeId               Int
+  createdAt            DateTime  @default(now())
+
+  userAvatar           User[]    @relation("UserAvatar")
+  userBanner           User[]    @relation("UserBanner")
+  statusMedias         StatusMedia[]
+  messages             Message[]
+  reactions            Reaction[]
+}
+
+model MediaType {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  createdAt            DateTime @default(now())
+
+  medias               Media[]
+}
+
+model Status {
+  id                   Int      @id @default(autoincrement())
+  content              String
+  author               User     @relation(fields: [authorId], references: [id], name: "StatusAuthor")
+  authorId             Int
+  parent               Status?  @relation(fields: [parentId], references: [id], name: "StatusParent")
+  parentId             Int?
+  createdAt            DateTime @default(now())
+
+  statusMedias         StatusMedia[]
+  statusMentions       StatusMention[]
+  interactions         Interaction[]
+  statusHashtags       StatusHashtag[]
+  pinned               User[]   @relation("UserPinned")
+  children             Status[] @relation("StatusParent")
+}
+
+model StatusMedia {
+  id                   Int      @id @default(autoincrement())
+  status               Status   @relation(fields: [statusId], references: [id])
+  statusId             Int
+  media                Media    @relation(fields: [mediaId], references: [id])
+  mediaId              Int
+  createdAt            DateTime @default(now())
+}
+
+model Message {
+  id                   Int      @id @default(autoincrement())
+  content              String
+  sender               User     @relation(fields: [senderId], references: [id], name: "MessageSender")
+  senderId             Int
+  recipient            User     @relation(fields: [recipientId], references: [id], name: "MessageRecipient")
+  recipientId          Int
+  media                Media?   @relation(fields: [mediaId], references: [id])
+  mediaId              Int?
+  createdAt            DateTime @default(now())
+
+  messageReactions     MessageReaction[]
+}
+
+model Reaction {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  image                Media?   @relation(fields: [imageId], references: [id])
+  imageId              Int?
+  createdAt            DateTime @default(now())
+
+  messageReactions     MessageReaction[]
+}
+
+model MessageReaction {
+  id                   Int      @id @default(autoincrement())
+  message              Message  @relation(fields: [messageId], references: [id])
+  messageId            Int
+  reaction             Reaction @relation(fields: [reactionId], references: [id])
+  reactionId           Int
+  author               User     @relation(fields: [authorId], references: [id])
+  authorId             Int
+  createdAt            DateTime @default(now())
+}
+
+model User {
+  id                   Int            @id @default(autoincrement())
+  name                 String
+  username             String         @unique
+  email                String         @unique
+  password             String
+  phone                String?
+  bio                  String
+  avatar               Media?         @relation(fields: [avatarId], references: [id], name: "UserAvatar")
+  avatarId             Int?
+  banner               Media?         @relation(fields: [bannerId], references: [id], name: "UserBanner")
+  bannerId             Int?
+  location             String?
+  website              String?
+  birthdate            DateTime
+  certification        Certification? @relation(fields: [certificationId], references: [id])
+  certificationId      Int?
+  pinned               Status?        @relation(fields: [pinnedStatusId], references: [id], name: "UserPinned")
+  pinnedStatusId       Int?
+  createdAt            DateTime       @default(now())
+
+  statuses             Status[]       @relation("StatusAuthor")
+  messagesSent         Message[]      @relation("MessageRecipient")
+  messagesRecieved     Message[]      @relation("MessageSender")
+  messageReactions     MessageReaction[]
+  followers            Relation[]     @relation("Followed")
+  followed             Relation[]     @relation("Follower")
+  interactions         Interaction[]
+  lists                List[]
+  listUsers            ListUser[]
+  mentionsAuthor       Mention[]      @relation("MentionAuthor")
+  mentionsTarget       Mention[]      @relation("MentionTarget")
+}
+
+model Certification {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  color                String
+  createdAt            DateTime @default(now())
+
+  users                User[]
+}
+
+model Relation {
+  id                   Int      @id @default(autoincrement())
+  follower             User     @relation(fields: [followerId], references: [id], name: "Follower")
+  followerId           Int
+  followed             User     @relation(fields: [followedId], references: [id], name: "Followed")
+  followedId           Int
+  createdAt            DateTime @default(now())
+}
+
+model Interaction {
+  id                   Int      @id @default(autoincrement())
+  author               User     @relation(fields: [authorId], references: [id])
+  authorId             Int
+  status               Status   @relation(fields: [statusId], references: [id])
+  statusId             Int
+  type                 InteractionType @relation(fields: [typeId], references: [id])
+  typeId               Int
+  createdAt            DateTime @default(now())
+}
+
+model InteractionType {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  createdAt            DateTime @default(now())
+
+  interactions         Interaction[]
+}
+
+model List {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  author               User     @relation(fields: [authorId], references: [id])
+  authorId             Int
+  createdAt            DateTime @default(now())
+
+  listUsers            ListUser[]
+}
+
+model ListUser {
+  id                   Int      @id @default(autoincrement())
+  list                 List     @relation(fields: [listId], references: [id])
+  listId               Int
+  user                 User     @relation(fields: [userId], references: [id])
+  userId               Int
+  createdAt            DateTime @default(now())
+}
+
+model Mention {
+  id                   Int      @id @default(autoincrement())
+  author               User     @relation(fields: [authorId], references: [id], name: "MentionAuthor")
+  authorId             Int
+  target               User     @relation(fields: [targetId], references: [id], name: "MentionTarget")
+  targetId             Int
+  createdAt            DateTime @default(now())
+
+  statusMentions       StatusMention[]
+}
+
+model StatusMention {
+  id                   Int      @id @default(autoincrement())
+  status               Status   @relation(fields: [statusId], references: [id])
+  statusId             Int
+  mention              Mention  @relation(fields: [mentionId], references: [id])
+  mentionId            Int
+  createdAt            DateTime @default(now())
+}
+
+model Hashtag {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  createdAt            DateTime @default(now())
+
+  statusHashtags       StatusHashtag[]
+}
+
+model StatusHashtag {
+  id                   Int      @id @default(autoincrement())
+  status               Status   @relation(fields: [statusId], references: [id])
+  statusId             Int
+  hashtag              Hashtag  @relation(fields: [hashtagId], references: [id])
+  hashtagId            Int
+  createdAt            DateTime @default(now())
+}
